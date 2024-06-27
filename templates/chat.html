@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TinkerBell</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="chat-title">Jio ChatBot</div>
+        </div>
+        <div id="messages" class="chat-messages"></div>
+        <div class="chat-input">
+            <input id="message" type="text" placeholder="Type a message..." onkeypress="handleKeyPress(event)" />
+            <button onclick="sendMessage()">
+                <p>Send</p>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+
+        socket.on('message', function(msg) {
+            const messages = document.getElementById('messages');
+            const messageBlocks = msg.split('\n\n'); // Split the response by double newline to separate blocks
+            messageBlocks.forEach(block => {
+                const message = document.createElement('div');
+                message.innerHTML = block; // Allow HTML content in the block
+                message.classList.add('bot'); // Assuming messages from server are from bot
+                messages.appendChild(message);
+            });
+            messages.scrollTop = messages.scrollHeight; // Auto-scroll to the latest message
+        });
+
+        function sendMessage() {
+            const messageInput = document.getElementById('message');
+            const message = messageInput.value;
+            if (message.trim() !== "") {
+                const messages = document.getElementById('messages');
+                const userMessage = document.createElement('div');
+                userMessage.innerHTML = message.replace(/\n/g, '<br>'); // Replace newlines with <br>
+                userMessage.classList.add('user'); // User's message
+                messages.appendChild(userMessage);
+                socket.send(message);
+                messageInput.value = '';
+                messages.scrollTop = messages.scrollHeight; // Auto-scroll to the latest message
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+    </script>
+</body>
+</html>
